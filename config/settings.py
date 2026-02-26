@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
 from pathlib import Path
 import os
 
@@ -25,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%l=pt_@p*lbe0pv-25i(-h07gc#*+c3(%^_q7cjh$ov!n8r@vh'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']  # 개발 편의를 위해 모든 호스트 허용으로 변경해둠
 
@@ -39,13 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # 내가 만든 앱
     'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 정적 파일 서빙 (Render 배포용)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,7 +59,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # 앱 내부의 templates 폴더를 자동으로 찾습니다
+        'DIRS': [],  # 앱 내부의 templates 폴더를 자동으로 찾습니다
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ko-kr'  # 한국어 설정
 
-TIME_ZONE = 'Asia/Seoul' # 한국 시간 설정
+TIME_ZONE = 'Asia/Seoul'  # 한국 시간 설정
 
 USE_I18N = True
 
@@ -123,6 +123,9 @@ STATIC_URL = 'static/'
 
 # [중요] 배포 시 정적 파일들을 모아줄 경로 (나중에 python manage.py collectstatic 할 때 사용됨)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# whitenoise 정적 파일 압축 저장 방식
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
