@@ -1,0 +1,973 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE TICKET - My Universe</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- [FIX] CSRF 토큰을 meta 태그로 안전하게 제공 -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <style>
+        /* =========================================
+           THEME: CYBERPUNK JOSEON
+           ========================================= */
+        :root {
+            --bg-deep: #0f0c29;
+            --glass-bg: rgba(0, 0, 0, 0.5); 
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-purple: #6200ea;
+            --accent-neon: #00d2d3; 
+            --accent-pink: #ff007f; 
+            --text-main: #ffffff;
+            --text-sub: #b2bec3;
+            --font-main: 'Pretendard', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        body {
+            background: url("{% static 'main/images/bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 20px 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 12, 41, 0.7);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        #bg-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 50px;
+            z-index: 1;
+        }
+
+        .ticket-header-deco {
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .nav-brand {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent-neon);
+            font-weight: 800;
+            text-decoration: none;
+            z-index: 2;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+            align-items: center;
+        }
+
+        .nav-btn {
+            font-size: 10px;
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: rgba(0,0,0,0.2);
+            font-family: var(--font-mono);
+        }
+        .nav-btn:hover {
+            background: #fff;
+            color: var(--accent-purple);
+            border-color: #fff;
+        }
+        .nav-btn.accent {
+            border-color: var(--accent-neon);
+            color: var(--accent-neon);
+        }
+        .nav-btn.accent:hover {
+            background: var(--accent-neon);
+            color: #000;
+        }
+
+        .inner-wrap { padding: 30px 20px 40px 20px; }
+        .header-section { text-align: center; margin-bottom: 30px; }
+        
+        .rabbit-img {
+            width: 100px; 
+            display: block; margin: 0 auto 15px;
+            filter: drop-shadow(0 0 15px rgba(98,0,234,0.6));
+            animation: floatRabbit 3s ease-in-out infinite;
+        }
+        @keyframes floatRabbit {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0; color: #fff;
+            text-shadow: 0 0 10px rgba(0, 210, 211, 0.7);
+            letter-spacing: -1px;
+        }
+        .subtitle {
+            font-size: 12px; color: var(--text-sub);
+            letter-spacing: 2px; margin-top: 5px;
+        }
+
+        .gate-message {
+            text-align: center; margin-bottom: 30px; padding: 15px;
+            background: rgba(0,0,0,0.4); border-radius: 12px;
+            border: 1px dashed rgba(255,255,255,0.3);
+        }
+        .gate-message p { margin: 5px 0; font-size: 14px; color: #dfe6e9; }
+        .typing-effect {
+            font-family: var(--font-mono); color: var(--accent-neon);
+            font-size: 13px; min-height: 20px;
+        }
+
+        .form-box { margin-top: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label {
+            display: block; margin-bottom: 6px; font-weight: 700; font-size: 11px;
+            color: var(--accent-neon); font-family: var(--font-mono); letter-spacing: 1px;
+        }
+        
+        input, select {
+            width: 100%; padding: 14px; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 15px; color: #fff;
+            box-sizing: border-box; outline: none;
+            font-family: var(--font-main); transition: all 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: var(--accent-neon);
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.3);
+            background: rgba(255,255,255,0.15);
+        }
+        select option { background: #000; color: #fff; }
+        
+        button[type="submit"] {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--accent-purple), #7c4dff);
+            color: #fff; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 800; cursor: pointer;
+            margin-top: 20px; text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(98,0,234,0.4);
+            transition: transform 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+
+        .result-container { animation: fadeUp 0.6s ease-out; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .headline-box, .content-card, .lucky-section, .today-luck-card {
+            transition: all 0.3s ease;
+        }
+        .headline-box:hover, .content-card:hover, .lucky-section:hover, .today-luck-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 210, 211, 0.1);
+            border-color: rgba(0, 210, 211, 0.4);
+        }
+
+        .headline-box {
+            background: rgba(255,255,255,0.1); border-radius: 16px;
+            padding: 20px; text-align: center; margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative; overflow: hidden;
+        }
+        .headline-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(98,0,234,0.4) 0%, transparent 70%);
+            animation: rotateBg 10s linear infinite;
+        }
+        @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .headline-text {
+            position: relative; z-index: 2; font-size: 24px; font-weight: 800; color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .identity-tag {
+            position: relative; z-index: 2; background: #000; color: var(--accent-neon);
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            font-family: var(--font-mono); margin-bottom: 10px; display: inline-block;
+        }
+
+        .element-chart-box { margin-top: 20px; text-align: left; }
+        .chart-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .chart-label { width: 50px; font-size: 12px; color: #b2bec3; display: flex; align-items: center; gap: 4px; }
+        .chart-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin: 0 10px; position: relative; }
+        
+        .chart-bar-fill {
+            height: 100%; border-radius: 4px; 
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 0 8px currentColor;
+        }
+        
+        .chart-val { width: 20px; font-size: 12px; color: #fff; text-align: right; font-weight: 700; }
+        
+        .radar-chart-box { margin-top: 30px; text-align: center; }
+
+        .tab-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .tab-btn {
+            padding: 12px 0; text-align: center; background: rgba(0,0,0,0.5);
+            border-radius: 10px; font-size: 13px; font-weight: 700; color: #b2bec3;
+            cursor: pointer; transition: all 0.3s; border: 1px solid transparent;
+        }
+        .tab-btn.active {
+            background: var(--accent-purple); color: #fff;
+            box-shadow: 0 0 15px rgba(98,0,234,0.5); border-color: rgba(255,255,255,0.3);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .content-card {
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px;
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .analysis-text { font-size: 15px; line-height: 1.6; color: #e0e0e0; margin-bottom: 10px; }
+        .analysis-text b { color: var(--accent-neon); font-weight: 700; text-shadow: 0 0 5px rgba(0, 210, 211, 0.4); }
+        .analysis-list { list-style: none; padding: 0; margin: 15px 0; }
+        .analysis-item {
+            background: rgba(255,255,255,0.08); padding: 12px 14px; border-radius: 8px;
+            margin-bottom: 8px; font-size: 14px; color: #fff;
+            border-left: 3px solid var(--accent-purple); line-height: 1.5;
+        }
+        
+        /* 팩트 체크 박스 스타일 */
+        .check-box {
+            background: rgba(255, 80, 80, 0.15); 
+            border: 1px solid rgba(255, 80, 80, 0.4); 
+            padding: 12px; border-radius: 8px; 
+            margin-top: 15px; font-size: 0.92em;
+        }
+
+        /* 서브 섹션 타이틀 */
+        .sub-title {
+            font-size: 12px; font-weight: bold; color: var(--accent-neon);
+            margin-top: 15px; margin-bottom: 5px; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .today-luck-card {
+            background: rgba(0,0,0,0.6); border: 1px solid var(--accent-pink);
+            border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 25px;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.2); position: relative; overflow: hidden;
+        }
+        .today-luck-card::after {
+            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: radial-gradient(circle, rgba(255,0,127,0.1), transparent 80%); z-index: -1;
+        }
+        .luck-score { font-size: 48px; font-weight: 900; color: var(--accent-pink); line-height: 1; text-shadow: 0 0 15px rgba(255,0,127,0.6); }
+        .luck-comment { font-size: 15px; color: #fff; margin-top: 10px; font-weight: 600; }
+
+        .lucky-section {
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px;
+            margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .lucky-section-title {
+            font-family: var(--font-mono); font-weight: 700; color: var(--accent-neon);
+            margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-size: 14px;
+        }
+        .lucky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .lucky-item { background: rgba(255,255,255,0.1); padding: 12px 8px; border-radius: 10px; text-align: center; }
+        .lucky-label { font-size: 10px; color: #b2bec3; display: block; margin-bottom: 6px; }
+        .lucky-val { font-size: 14px; font-weight: 700; color: #fff; }
+
+        .mission-box { 
+            background: rgba(0,0,0,0.2); 
+            border: 2px dashed rgba(255,255,255,0.3); 
+            border-radius: 12px; 
+            padding: 15px; 
+            color:#fff; 
+            font-size:14px; 
+            line-height:1.5;
+        }
+
+        .bottom-links { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px; padding-bottom: 20px; }
+        .btn-retry {
+            color: var(--text-sub); text-decoration: none; font-size: 13px;
+            border-bottom: 1px solid var(--text-sub); padding-bottom: 2px; transition: color 0.3s;
+        }
+        .btn-retry:hover { color: #fff; border-bottom-color: #fff; }
+
+        .login-guide { text-align: center; margin-top: 30px; }
+        .btn-link {
+            display: inline-block; padding: 12px 24px; background: #fff; color: #000;
+            font-weight: 700; border-radius: 30px; text-decoration: none; font-size: 14px;
+            margin: 5px; transition: transform 0.2s;
+        }
+        .btn-link:hover { transform: scale(1.05); }
+
+        .daewoon-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .daewoon-scroll::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 3px;
+        }
+        .daewoon-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .weapon-card:hover {
+            transform: translateY(-3px) translateX(3px);
+            background: rgba(255,255,255,0.08) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .weapon-card:hover .shine-effect {
+            animation: shine 0.5s;
+        }
+        @keyframes shine {
+            100% { left: 150%; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="container">
+    
+    <div class="ticket-header-deco">
+        <a href="{% url 'index' %}" class="nav-brand">LIFE TICKET</a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <span style="font-size:10px; color:rgba(255,255,255,0.8);">
+                    👾 {{ user.username }}
+                </span>
+                <a href="{% url 'mypage' %}" class="nav-btn accent">ARCHIVE</a>
+                <a href="{% url 'logout' %}" class="nav-btn">LOGOUT</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-btn">LOGIN</a>
+                <a href="{% url 'signup' %}" class="nav-btn accent">JOIN</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="inner-wrap">
+        
+        <div class="header-section">
+            <img src="{% static 'main/images/character.png' %}" class="rabbit-img" alt="Space Rabbit">
+            <h1>LIFE TICKET</h1>
+            <p class="subtitle">Personal Universe Analysis</p>
+        </div>
+
+        {% if error %}
+        <div style="background:rgba(255,0,0,0.2); border:1px solid red; color:#ff6b6b; padding:12px; border-radius:8px; text-align:center; margin-bottom:20px; font-size:13px;">
+            🚨 {{ error }}
+        </div>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+            {% if not headline %}
+            <div class="gate-message">
+                <div class="typing-effect" id="typing"></div>
+                <p style="font-size:12px; color:#b2bec3; margin-top:10px;">당신의 생년월일(OS)과 MBTI(App)를 입력하세요.</p>
+            </div>
+
+            <div class="form-box">
+                <form method="POST" action="{% url 'result' %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label>NAME (탑승자명)</label>
+                        <input type="text" name="name" placeholder="이름을 입력하세요" required>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="input-group">
+                            <label>MBTI (기질)</label>
+                            <select name="mbti" required>
+                                <option value="" disabled selected>선택</option>
+                                <option value="ESTJ">ESTJ</option>
+                                <option value="ENTJ">ENTJ</option>
+                                <option value="ESFJ">ESFJ</option>
+                                <option value="ENFJ">ENFJ</option>
+                                <option value="ESTP">ESTP</option>
+                                <option value="ENTP">ENTP</option>
+                                <option value="ESFP">ESFP</option>
+                                <option value="ENFP">ENFP</option>
+                                <option value="ISTJ">ISTJ</option>
+                                <option value="INTJ">INTJ</option>
+                                <option value="ISFJ">ISFJ</option>
+                                <option value="INFJ">INFJ</option>
+                                <option value="ISTP">ISTP</option>
+                                <option value="INTP">INTP</option>
+                                <option value="ISFP">ISFP</option>
+                                <option value="INFP">INFP</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>GENDER</label>
+                            <select name="gender">
+                                <option value="male">남성</option>
+                                <option value="female">여성</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <label>CALENDAR TYPE</label>
+                        <div style="display: flex; gap: 10px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                            <label style="flex: 1; text-align: center; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <input type="radio" name="calendar_type" value="solar" checked style="width: auto; margin: 0;"> 
+                                <span style="font-size: 13px; color: #fff; font-weight: 400;">☀️ 양력</span>
+                            </label>
+                            <label style="flex: 1; text-align: center; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; border-left: 1px solid rgba(255,255,255,0.2);">
+                                <input type="radio" name="calendar_type" value="lunar" style="width: auto; margin: 0;"> 
+                                <span style="font-size: 13px; color: #fff; font-weight: 400;">🌙 음력</span>
+                            </label>
+                            <label style="flex: 1; text-align: center; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; border-left: 1px solid rgba(255,255,255,0.2);">
+                                <input type="radio" name="calendar_type" value="lunar_leap" style="width: auto; margin: 0;"> 
+                                <span style="font-size: 13px; color: #fff; font-weight: 400;">🌙 윤달</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:10px;">
+                        <div class="input-group">
+                            <label>BIRTH DATE (OS 설치일)</label>
+                            <input type="date" name="birth_date" required>
+                        </div>
+                        <div class="input-group">
+                            <label>TIME</label>
+                            <input type="time" name="birth_time" value="12:00">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="paid" value="1">
+                    <button type="submit">분석 데이터 수신 시작 📡</button>
+                </form>
+            </div>
+            
+            <script>
+                const txt = "천성(사주)과 기질(MBTI)의 결합...";
+                let i = 0;
+                function type() {
+                    if (i < txt.length) {
+                        const target = document.getElementById("typing");
+                        if(target) target.innerHTML += txt.charAt(i);
+                        i++;
+                        setTimeout(type, 100);
+                    }
+                }
+                type();
+            </script>
+            {% endif %}
+
+
+            {% if headline %}
+            <div class="result-container">
+                
+                <div class="headline-box">
+                    <span class="identity-tag">IDENTITY FOUND</span>
+                    <div class="headline-text">{{ headline }}</div>
+                    
+                    <div class="element-chart-box">
+                        <div style="font-size:10px; color:#b2bec3; margin-bottom:10px; text-align:center; letter-spacing:1px;">MY ELEMENT CHART</div>
+                        <div class="chart-row">
+                            <span class="chart-label">🌲 목</span>
+                            <div class="chart-bar-bg">
+                                <div class="chart-bar-fill" style="background:#2ecc71;" data-width="{% widthratio ec_mok 8 100 %}%"></div>
+                            </div>
+                            <span class="chart-val">{{ ec_mok }}</span>
+                        </div>
+                        <div class="chart-row">
+                            <span class="chart-label">🔥 화</span>
+                            <div class="chart-bar-bg">
+                                <div class="chart-bar-fill" style="background:#e74c3c;" data-width="{% widthratio ec_hwa 8 100 %}%"></div>
+                            </div>
+                            <span class="chart-val">{{ ec_hwa }}</span>
+                        </div>
+                        <div class="chart-row">
+                            <span class="chart-label">⛰️ 토</span>
+                            <div class="chart-bar-bg">
+                                <div class="chart-bar-fill" style="background:#f1c40f;" data-width="{% widthratio ec_to 8 100 %}%"></div>
+                            </div>
+                            <span class="chart-val">{{ ec_to }}</span>
+                        </div>
+                        <div class="chart-row">
+                            <span class="chart-label">⚔️ 금</span>
+                            <div class="chart-bar-bg">
+                                <div class="chart-bar-fill" style="background:#bdc3c7;" data-width="{% widthratio ec_geum 8 100 %}%"></div>
+                            </div>
+                            <span class="chart-val">{{ ec_geum }}</span>
+                        </div>
+                        <div class="chart-row">
+                            <span class="chart-label">💧 수</span>
+                            <div class="chart-bar-bg">
+                                <div class="chart-bar-fill" style="background:#3498db;" data-width="{% widthratio ec_su 8 100 %}%"></div>
+                            </div>
+                            <span class="chart-val">{{ ec_su }}</span>
+                        </div>
+                    </div>
+
+                    <div class="radar-chart-box" style="margin-top: 30px; text-align: center;">
+                        <div style="font-size:10px; color:#00d2d3; margin-bottom:15px; letter-spacing:1px; font-weight:700;">
+                            ⚡ HIDDEN POTENTIAL (본능 스탯)
+                        </div>
+                        <div style="position: relative; height:250px; width:100%;">
+                            <canvas id="sajuRadarChart"></canvas>
+                        </div>
+                        <p style="font-size:11px; color:#b2bec3; margin-top:10px; line-height:1.4;">
+                            * 지장간(무의식)까지 포함된 <br>당신의 <b>진짜 에너지 분포도</b>입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="today-luck-card">
+                    <div style="font-family:var(--font-mono); font-size:12px; color:#ff007f; letter-spacing:1px; margin-bottom:5px;">
+                        TODAY'S ENERGY
+                    </div>
+                    
+                    <div class="luck-score">{{ today_fortune.score }}</div>
+                    <div style="font-size:14px; margin-bottom:15px; color:#ffd700; letter-spacing:2px;">
+                        {{ today_fortune.stars }}
+                    </div>
+
+                    <div style="font-size:16px; font-weight:700; color:#fff; margin-bottom:10px; text-shadow:0 0 10px rgba(255,0,127,0.5);">
+                        "{{ today_fortune.tier }}"
+                    </div>
+
+                    <div class="luck-comment" style="font-size:14px; color:#e0e0e0; line-height:1.6; margin-bottom:20px; background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;">
+                        {{ today_fortune.comment|linebreaksbr }}
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:left;">
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+                            <span style="font-size:10px; color:#00d2d3; font-weight:bold;">🚀 MUST DO</span>
+                            <div style="font-size:12px; color:#fff; margin-top:4px; line-height:1.3;">
+                                {{ today_fortune.action }}
+                            </div>
+                        </div>
+                        <div style="background:rgba(255,0,50,0.1); padding:10px; border-radius:8px;">
+                            <span style="font-size:10px; color:#ff6b6b; font-weight:bold;">🚫 TABOO</span>
+                            <div style="font-size:12px; color:#fff; margin-top:4px; line-height:1.3;">
+                                {{ today_fortune.taboo }}
+                                {% if today_fortune.sub_taboo %}
+                                <br><span style="font-size:10px; color:#aaa;">(+{{ today_fortune.sub_taboo }})</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if weapons %}
+                <div class="result-card" style="background: rgba(0,0,0,0.6); border: 1px solid var(--accent-purple); border-radius: 16px; padding: 25px 20px; margin-bottom: 25px; position: relative; overflow: hidden;">
+                    
+                    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%); opacity: 0.2; pointer-events: none;"></div>
+
+                    <div style="font-family:var(--font-mono); font-size:12px; color:var(--accent-purple); letter-spacing:1px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <span>⚔️ MY HIDDEN WEAPONS</span>
+                        <span style="font-size: 10px; color: #b2bec3;">UNLOCK YOUR POTENTIAL</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                        {% for weapon in weapons %}
+                        <div class="weapon-card" 
+                             style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border-left: 4px solid {{ weapon.color }}; position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+                            
+                            <div class="shine-effect" style="position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transform: skewX(-25deg);"></div>
+
+                            <div style="width: 45px; height: 45px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                                {{ weapon.icon }}
+                            </div>
+                            
+                            <div style="flex: 1; z-index: 2;">
+                                <div style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase;" class="weapon-stat-label">
+                                    {{ weapon.stat }}
+                                </div>
+                                <div style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                                    {{ weapon.name }}
+                                </div>
+                                <div style="font-size: 12px; color: #b2bec3; line-height: 1.4;">
+                                    {{ weapon.desc }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div style="margin-top: 20px; background: rgba(98, 0, 234, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+                        <p style="font-size:11px; color:#b2bec3; margin:0; line-height: 1.6;">
+                            <span style="color: var(--accent-neon); font-weight: bold;">💡 TIP:</span><br>
+                            이 무기들은 당신이 태어날 때부터 장착된 고유 스킬입니다.<br>
+                            억지로 만들려 하지 말고, 이미 가진 힘을 잘 쓰세요.
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <p style="font-size:11px; color:#666; margin-top:15px; text-align:center;">
+                    * 인생은 10년마다 도로가 바뀝니다. <br>현재 도로 컨디션에 맞춰 속도와 방향을 조절하세요.
+                </p>
+            </div>
+            {% endif %}
+
+            {% if headline %}
+            <div class="tab-nav">
+                <div class="tab-btn active" onclick="openTab('tab-core', this)">🧩 IDENTITY</div>
+                <div class="tab-btn" onclick="openTab('tab-money', this)">💸 MONEY</div>
+                <div class="tab-btn" onclick="openTab('tab-love', this)">💘 LOVE</div>
+                <div class="tab-btn" onclick="openTab('tab-work', this)">💼 WORK</div>
+                <div class="tab-btn" onclick="openTab('tab-space', this)">🪐 SPACE</div>
+                <div class="tab-btn" onclick="openTab('tab-lucky', this)">🎁 LUCKY</div>
+            </div>
+
+            <div id="tab-core" class="tab-content active">
+                <div class="content-card">
+                    {{ identity_core|safe }}
+                    
+                    {% if hidden_engine %}
+                    <hr style="border:0; border-top:1px dashed rgba(255,255,255,0.1); margin:20px 0;">
+                    <div class="sub-title">🎭 HIDDEN ENGINE</div>
+                    <div style="font-size:14px; line-height:1.6; color:#e0e0e0;">
+                        {{ hidden_engine|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="tab-money" class="tab-content">
+                <div class="content-card">
+                    {{ money|safe }}
+
+                    {% if safety_line %}
+                    <hr style="border:0; border-top:1px dashed rgba(255,255,255,0.1); margin:20px 0;">
+                    <div class="sub-title">🚧 SAFETY LINE</div>
+                    <div style="font-size:14px; line-height:1.6; color:#e0e0e0;">
+                        {{ safety_line|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="tab-love" class="tab-content">
+                <div class="content-card">{{ love|safe }}</div>
+            </div>
+
+            <div id="tab-work" class="tab-content">
+                <div class="content-card">
+                    {{ job|safe }}
+
+                    {% if management_gap %}
+                    <hr style="border:0; border-top:1px dashed rgba(255,255,255,0.1); margin:20px 0;">
+                    <div class="sub-title">⚖️ MANAGEMENT GAP</div>
+                    <div style="font-size:14px; line-height:1.6; color:#e0e0e0;">
+                        {{ management_gap|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="tab-space" class="tab-content">
+                <div class="content-card">{{ housing|safe }}</div>
+            </div>
+            
+            <div id="tab-lucky" class="tab-content">
+                <div class="lucky-section">
+                    <div class="lucky-section-title">🍀 LUCKY BOOSTERS</div>
+                    <div class="lucky-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="lucky-item">
+                            <span class="lucky-label">COLOR</span>
+                            <span class="lucky-val">{{ lucky_info.color }}</span>
+                        </div>
+                        <div class="lucky-item">
+                            <span class="lucky-label">ITEM</span>
+                            <span class="lucky-val">{{ lucky_info.item }}</span>
+                        </div>
+                        <div class="lucky-item">
+                            <span class="lucky-label">FOOD</span>
+                            <span class="lucky-val">{{ lucky_info.food }}</span>
+                        </div>
+                        <div class="lucky-item">
+                            <span class="lucky-label">NUMBER</span>
+                            <span class="lucky-val">{{ lucky_info.number }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lucky-section">
+                    <div class="lucky-section-title">📍 LUCKY SPOT: {{ location_info.direction }}</div>
+                    <div class="mission-box" style="margin-bottom: 15px; border-color: rgba(0, 210, 211, 0.4);">
+                        <div style="font-size:16px; font-weight:bold; color:#00d2d3; margin-bottom:8px; line-height:1.4;">
+                            {{ location_info.spot|safe }}
+                        </div>
+                        <div style="font-size:13px; color:#ddd; font-style:italic; border-top:1px dashed rgba(255,255,255,0.2); padding-top:8px;">
+                            "{{ location_info.desc|safe }}"
+                        </div>
+                    </div>
+                    {% if location_info.mission %}
+                    <div class="mission-box" style="border-color: rgba(241, 196, 15, 0.4);">
+                        <div style="color:#f1c40f; font-weight:bold; font-size:12px; margin-bottom:6px;">
+                            ⚡ SPOT MISSION
+                        </div>
+                        <div style="font-size:13px; color:#fff; line-height:1.5;">
+                            {{ location_info.mission|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="lucky-section">
+                    <div class="lucky-section-title">✅ DAILY ACTION</div>
+                    <div class="mission-box" style="border-color: rgba(255, 0, 127, 0.4);">
+                        <div style="font-size:13px; color:#fff; line-height:1.6;">
+                            {{ today_actions|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-links" style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px; padding-bottom: 20px;">
+                <a href="." class="btn-retry">↻ 다시 분석하기</a>
+                <a href="{% url 'mypage' %}" class="btn-retry">📂 기록 보관소</a>
+
+                {% if user.is_authenticated and headline %}
+                <button type="button" id="save-btn" onclick="saveCurrentResult()" class="btn-retry" 
+                        style="background:none; border:none; padding:0; font-family:inherit; font-size:13px; cursor:pointer; color:#00d2d3;">
+                    💾 결과 저장
+                </button>
+                {% endif %}
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #666; padding-bottom: 40px;">
+                * 리포트 PDF 다운로드는 [결과 저장] 후 [기록 보관소]에서 이용 가능합니다.
+            </div>
+
+            {% endif %} {% else %}
+            <div class="login-guide">
+                <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:16px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1);">
+                    <p style="font-size:16px; font-weight:700; margin-bottom:10px;">ACCESS DENIED</p>
+                    <p style="font-size:13px; color:#b2bec3; line-height:1.5;">
+                        운명 데이터에 접근하려면<br>보안 인증(로그인)이 필요합니다.
+                    </p>
+                </div>
+                <a href="{% url 'login' %}" class="btn-link" style="background:var(--accent-purple); color:#fff; border:none;">LOG IN</a>
+                <a href="{% url 'signup' %}" class="btn-link">JOIN</a>
+            </div>
+        {% endif %} </div>
+</div>
+
+<script>
+    // 1. 탭 기능
+    function openTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(btnElement) btnElement.classList.add('active');
+    }
+
+    // 2. 우주 배경 파티클
+    const canvas = document.getElementById('bg-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [];
+
+        function initStars() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            stars = [];
+            const starCount = Math.floor((width * height) / 6000); 
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 1.5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random()
+                });
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height); 
+            ctx.fillStyle = "white";
+            stars.forEach(star => {
+                ctx.globalAlpha = star.opacity;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                star.y -= star.speed;
+                star.opacity += (Math.random() - 0.5) * 0.05;
+                if (star.opacity < 0) star.opacity = 0;
+                if (star.opacity > 1) star.opacity = 1;
+
+                if (star.y < 0) {
+                    star.y = height;
+                    star.x = Math.random() * width;
+                }
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', initStars);
+        initStars();
+        animateStars();
+    }
+</script>
+
+{% if headline %}
+<script>
+    // 1. 결과 저장
+    function saveCurrentResult() {
+        if(!confirm("현재 결과를 '나의 우주 기록'에 영구 저장하시겠습니까?")) return;
+        
+        // [FIX] CSRF 토큰을 meta 태그에서 읽기 (폼이 없는 결과 화면에서도 안정적)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch("{% url 'save_result' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken, 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => { 
+            alert(data.message); 
+            if(data.success) {
+                const btn = document.getElementById('save-btn');
+                if(btn) {
+                    btn.innerText = "✅ 저장 완료";
+                    btn.style.color = "#888";
+                    btn.style.cursor = "default";
+                    btn.onclick = null; // 중복 클릭 방지
+                }
+            }
+        })
+        .catch(error => { console.error('Error:', error); alert("저장 중 오류가 발생했습니다."); });
+    }
+
+    // 2. 차트 로드
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(() => {
+            document.querySelectorAll('.chart-bar-fill').forEach(bar => {
+                const targetWidth = bar.getAttribute('data-width');
+                if (targetWidth) {
+                    bar.style.width = targetWidth;
+                }
+            });
+        }, 300);
+
+        const scoresDataStr = '{{ scores_json|escapejs }}';
+        if (!scoresDataStr || scoresDataStr === 'None') return;
+
+        const scoresData = JSON.parse(scoresDataStr);
+        const labels = ['자아(비겁)', '표현(식상)', '재물(재성)', '원칙(관성)', '지식(인성)'];
+        const dataValues = [
+            scoresData['비겁'] || 0, scoresData['식상'] || 0, scoresData['재성'] || 0,
+            scoresData['관성'] || 0, scoresData['인성'] || 0
+        ];
+        
+        const chartCanvas = document.getElementById('sajuRadarChart');
+        if (chartCanvas) {
+            const ctx = chartCanvas.getContext('2d');
+            let gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 150);
+            gradient.addColorStop(0, 'rgba(98, 0, 234, 0.5)'); 
+            gradient.addColorStop(1, 'rgba(0, 210, 211, 0.1)'); 
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'My Energy Stat',
+                        data: dataValues,
+                        backgroundColor: gradient,
+                        borderColor: '#00d2d3',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0f0c29',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#ff007f',
+                        pointHoverBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { 
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                circular: true 
+                            },
+                            pointLabels: { 
+                                color: '#ffffff', 
+                                font: { size: 12, family: "'Pretendard', sans-serif", weight: 'bold' } 
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' },
+                            suggestedMin: 0, 
+                            suggestedMax: 40 
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 12, 41, 0.9)',
+                            titleColor: '#00d2d3',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255,255,255,0.2)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
+
+</body>
+</html>

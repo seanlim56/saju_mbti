@@ -1,0 +1,457 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive - {{ result.name }}</title>
+    
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* =========================================
+           웹 화면 전용 테마 (PDF와 분리됨)
+           ========================================= */
+        :root {
+            --bg-deep: #0f0c29;
+            --glass-bg: rgba(0, 0, 0, 0.5); 
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-purple: #6200ea;
+            --accent-neon: #00d2d3; 
+            --accent-pink: #ff007f; 
+            --text-main: #ffffff;
+            --text-sub: #b2bec3;
+            --font-main: 'Pretendard', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        body {
+            background: url("{% static 'main/images/bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 20px 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 12, 41, 0.85);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        #bg-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border-radius: 24px;
+            position: relative;
+            margin-bottom: 50px;
+            z-index: 1;
+        }
+
+        .nav-bar {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-link {
+            color: #b2bec3;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            display: flex; align-items: center; gap: 5px;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: #fff; }
+
+        .content-wrap { padding: 30px 20px; }
+
+        .header-box { text-align: center; margin-bottom: 30px; }
+        .name-tag {
+            display: inline-block;
+            background: var(--accent-purple);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            margin-bottom: 10px;
+        }
+        
+        .cyber-glitch { transition: all 0.2s; display: inline-block; }
+        .cyber-glitch:hover {
+            animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: var(--accent-neon);
+            text-shadow: 2px 2px var(--accent-pink), -2px -2px var(--accent-purple);
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg) translate(0); }
+            20% { transform: skew(-10deg) translate(-2px, 2px); }
+            40% { transform: skew(10deg) translate(2px, -2px); }
+            60% { transform: skew(-5deg) translate(-2px, -2px); }
+            80% { transform: skew(5deg) translate(2px, 2px); }
+            100% { transform: skew(0deg) translate(0); }
+        }
+
+        h1 { margin: 5px 0; font-size: 28px; font-weight: 800; color: #fff; text-shadow: 0 0 15px rgba(0, 210, 211, 0.5); }
+        .meta-info { font-size: 12px; color: #b2bec3; font-family: var(--font-mono); letter-spacing: 1px; }
+
+        .section-title {
+            font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent-neon);
+            margin: 40px 0 15px 0; padding-left: 10px; border-left: 3px solid var(--accent-neon);
+        }
+
+        .card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); font-size: 14px; line-height: 1.6; color: #e0e0e0; }
+
+        .analysis-text { margin-bottom: 8px; }
+        .analysis-text b { color: var(--accent-neon); font-weight: 700; }
+        .analysis-list { list-style: none; padding: 0; margin: 15px 0; }
+        .analysis-item { background: rgba(255,255,255,0.08); padding: 12px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; color: #fff; border-left: 3px solid var(--accent-purple); line-height: 1.5; }
+
+        .weapon-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .weapon-icon { width: 45px; height: 45px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+
+        .lucky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .lucky-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .lucky-label { font-size: 10px; color: #888; display: block; margin-bottom: 5px; font-family: var(--font-mono); }
+        .lucky-val { font-size: 14px; color: #fff; font-weight: 700; }
+        
+        .spot-card { background: linear-gradient(135deg, rgba(98,0,234,0.1), rgba(0,0,0,0.3)); border: 1px solid var(--accent-purple); }
+        
+        .btn-retry { display: inline-block; color: var(--text-sub); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--text-sub); padding-bottom: 4px; transition: color 0.3s; margin: 0 10px; }
+        .btn-retry:hover { color: #fff; border-bottom-color: #fff; }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="container">
+    <div class="nav-bar">
+        <a href="{% url 'mypage' %}" class="nav-link">← ARCHIVE LIST</a>
+        <span style="font-size:11px; color:#666; font-family:var(--font-mono);">No. {{ result.id }}</span>
+    </div>
+
+    <div class="content-wrap">
+        <div class="header-box">
+            <span class="name-tag">{{ result.mbti }} TYPE</span>
+            <h1 class="cyber-glitch">{{ result.name }}</h1>
+            <div class="meta-info">
+                {{ result.year }}.{{ result.month }}.{{ result.day }} Born
+                <span style="margin:0 5px; color:#444;">|</span>
+                {% if result.gender == 'male' %}남성{% else %}여성{% endif %}
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-bottom:40px; padding-bottom:20px; border-bottom:1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size:20px; font-weight:800; color:var(--accent-neon); margin-bottom:5px; text-shadow:0 0 10px rgba(0,210,211,0.3);">
+                {{ result.strongest }}
+            </div>
+            <div style="font-size:11px; color:#b2bec3; letter-spacing:2px;">CORE ENERGY</div>
+        </div>
+
+        {% if result.weapons %}
+        <div class="section-title">⚔️ HIDDEN WEAPONS</div>
+        <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+            {% for weapon in result.weapons %}
+            <div class="weapon-card" style="border-left: 3px solid {{ weapon.color }};">
+                <div class="weapon-icon">{{ weapon.icon }}</div>
+                <div>
+                    <div style="font-family:var(--font-mono); font-size:10px; color:{{ weapon.color }}; font-weight:800; letter-spacing:1px; margin-bottom:3px;">
+                        {{ weapon.stat }}
+                    </div>
+                    <div style="font-size:15px; font-weight:700; color:#fff; margin-bottom:3px;">
+                        {{ weapon.name }}
+                    </div>
+                    <div style="font-size:12px; color:#b2bec3; line-height:1.3;">
+                        {{ weapon.desc }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="section-title">🧩 IDENTITY CORE</div>
+        <div class="card">{{ result.identity_core|safe }}</div>
+        
+        <div class="section-title">🎭 HIDDEN ENGINE</div>
+        <div class="card">
+            {% if result.hidden_engine %}
+                {{ result.hidden_engine|safe }}
+            {% else %}
+                <span style="color:#666; font-size:13px;">(데이터 없음)</span>
+            {% endif %}
+        </div>
+
+        <div class="section-title">💸 MONEY FLOW</div>
+        <div class="card">{{ result.money|safe }}</div>
+
+        <div class="section-title">💼 WORK STYLE</div>
+        <div class="card">{{ result.job|safe }}</div>
+
+        <div class="section-title">💘 LOVE SIGNAL</div>
+        <div class="card">{{ result.love|safe }}</div>
+
+        <div class="section-title">🪐 SPACE & LUCK</div>
+        <div class="card spot-card">
+            <div style="font-size:11px; color:#b2bec3; margin-bottom:5px;">RECOMMENDED SPOT</div>
+            <div style="font-size:16px; font-weight:700; color:#fff; margin-bottom:10px;">
+                {{ result.location_info.spot|safe }}
+            </div>
+            <div style="font-size:13px; color:#ddd; font-style:italic; border-top:1px dashed rgba(255,255,255,0.2); padding-top:10px;">
+                "{{ result.location_info.desc|safe }}"
+            </div>
+            {% if result.location_info.mission %}
+            <div style="margin-top:15px; background:rgba(255,255,255,0.1); padding:10px; border-radius:8px; font-size:13px; color:#fff;">
+                <b style="color:var(--accent-neon);">🎯 MISSION:</b> {{ result.location_info.mission|safe }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="lucky-grid">
+            <div class="lucky-item">
+                <span class="lucky-label">LUCKY COLOR</span>
+                <span class="lucky-val">{{ result.lucky_info.color }}</span>
+            </div>
+            <div class="lucky-item">
+                <span class="lucky-label">LUCKY ITEM</span>
+                <span class="lucky-val">{{ result.lucky_info.item }}</span>
+            </div>
+            <div class="lucky-item">
+                <span class="lucky-label">SOUL FOOD</span>
+                <span class="lucky-val">{{ result.lucky_info.food }}</span>
+            </div>
+            <div class="lucky-item">
+                <span class="lucky-label">NUMBER</span>
+                <span class="lucky-val">{{ result.lucky_info.number }}</span>
+            </div>
+        </div>
+
+        <div class="section-title">🚧 SAFETY LINE</div>
+        <div class="card">{{ result.safety_line|safe|default:"-" }}</div>
+
+        <div class="bottom-action-box" style="margin-top: 40px; padding-bottom: 60px; text-align: center;">
+            <div style="margin-top: 20px;">
+                <a href="{% url 'index' %}" class="btn-retry" style="margin-right:15px;">↻ 새 분석</a>
+                <a href="{% url 'mypage' %}" class="btn-retry">📂 보관소</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="pdf-blueprint-wrapper" style="display: none;">
+    <div>
+        <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+        <style>
+            /* 어떠한 외부 환경에도 깨지지 않는 고정형 단색 레이아웃 */
+            .pdf-canvas {
+                width: 800px;
+                background-color: #0f0c29;
+                color: #ffffff;
+                padding: 50px 60px;
+                font-family: 'Pretendard', sans-serif;
+                box-sizing: border-box;
+            }
+            .pdf-header { text-align: center; border-bottom: 1px dashed #333; padding-bottom: 30px; margin-bottom: 30px; }
+            .pdf-tag { background-color: #6200ea; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+            .pdf-name { font-size: 36px; font-weight: 900; margin: 0 0 10px 0; color: #00d2d3; letter-spacing: -1px; }
+            .pdf-meta { font-size: 14px; color: #b2bec3; }
+            
+            .pdf-section-title { font-size: 17px; font-weight: bold; color: #00d2d3; border-left: 4px solid #00d2d3; padding-left: 12px; margin: 40px 0 15px 0; display: block; }
+            
+            /* 카드 스타일 통일 및 잘림 방지 */
+            .pdf-card { background-color: #1a1a2e; border: 1px solid #333344; border-radius: 12px; padding: 25px; font-size: 15px; line-height: 1.7; page-break-inside: avoid; margin-bottom: 20px; }
+            
+            /* 무기 스타일 */
+            .pdf-weapon { background-color: #1a1a2e; border: 1px solid #333344; border-radius: 12px; padding: 20px; display: flex; align-items: center; margin-bottom: 15px; page-break-inside: avoid; }
+            .pdf-weapon-icon { font-size: 28px; margin-right: 20px; background: #000; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+            
+            /* 그리드 레이아웃 */
+            .pdf-grid { display: flex; flex-wrap: wrap; gap: 15px; page-break-inside: avoid; margin-top: 15px; }
+            .pdf-grid-item { flex: 1 1 45%; background-color: #1a1a2e; border: 1px solid #333344; border-radius: 12px; padding: 20px; text-align: center; }
+            
+            /* 파이썬(text_bank.py)에서 넘어온 태그들 강제 스타일링 */
+            .analysis-text { margin-bottom: 10px; color: #e0e0e0; }
+            .analysis-text b { color: #00d2d3; }
+            .analysis-list { list-style: none; padding: 0; }
+            .analysis-item { background-color: #22223b !important; padding: 15px !important; border-radius: 8px !important; margin-bottom: 10px !important; border-left: 4px solid #6200ea !important; font-size: 14px; }
+        </style>
+
+        <div class="pdf-canvas">
+            <div class="pdf-header">
+                <div class="pdf-tag">{{ result.mbti }} TYPE</div>
+                <div class="pdf-name">{{ result.name }}</div>
+                <div class="pdf-meta">{{ result.year }}.{{ result.month }}.{{ result.day }} Born | CORE: {{ result.strongest }}</div>
+            </div>
+
+            {% if result.weapons %}
+            <div class="pdf-section-title">HIDDEN WEAPONS</div>
+            {% for weapon in result.weapons %}
+            <div class="pdf-weapon" style="border-left: 4px solid {{ weapon.color }};">
+                <div class="pdf-weapon-icon">{{ weapon.icon }}</div>
+                <div>
+                    <div style="font-size: 11px; color: {{ weapon.color }}; font-weight: bold; margin-bottom: 4px;">{{ weapon.stat }}</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 4px;">{{ weapon.name }}</div>
+                    <div style="font-size: 14px; color: #b2bec3;">{{ weapon.desc }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="pdf-section-title">IDENTITY CORE</div>
+            <div class="pdf-card">{{ result.identity_core|safe }}</div>
+            
+            {% if result.hidden_engine %}
+            <div class="pdf-section-title">HIDDEN ENGINE</div>
+            <div class="pdf-card">{{ result.hidden_engine|safe }}</div>
+            {% endif %}
+
+            <div class="pdf-section-title">MONEY FLOW</div>
+            <div class="pdf-card">{{ result.money|safe }}</div>
+
+            <div class="pdf-section-title">WORK STYLE</div>
+            <div class="pdf-card">{{ result.job|safe }}</div>
+
+            <div class="pdf-section-title">LOVE SIGNAL</div>
+            <div class="pdf-card">{{ result.love|safe }}</div>
+
+            <div class="pdf-section-title">SPACE & LUCK</div>
+            <div class="pdf-card">
+                <div style="color: #00d2d3; font-weight: bold; font-size: 12px; margin-bottom: 8px;">📍 RECOMMENDED SPOT</div>
+                <div style="font-size: 18px; color: #fff; font-weight: bold;">{{ result.location_info.spot|safe }}</div>
+                <div style="font-size: 14px; color: #b2bec3; margin-top: 8px; font-style: italic;">"{{ result.location_info.desc|safe }}"</div>
+                {% if result.location_info.mission %}
+                <div style="margin-top: 15px; background-color: #22223b; padding: 12px; border-radius: 8px; border-left: 3px solid #00d2d3;">
+                    <b style="color: #00d2d3; font-size: 13px;">🎯 MISSION:</b> {{ result.location_info.mission|safe }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="pdf-grid">
+                <div class="pdf-grid-item">
+                    <div style="font-size: 12px; color: #888; margin-bottom: 6px;">LUCKY COLOR</div>
+                    <div style="font-size: 16px; color: #fff; font-weight: bold;">{{ result.lucky_info.color }}</div>
+                </div>
+                <div class="pdf-grid-item">
+                    <div style="font-size: 12px; color: #888; margin-bottom: 6px;">LUCKY ITEM</div>
+                    <div style="font-size: 16px; color: #fff; font-weight: bold;">{{ result.lucky_info.item }}</div>
+                </div>
+                <div class="pdf-grid-item">
+                    <div style="font-size: 12px; color: #888; margin-bottom: 6px;">SOUL FOOD</div>
+                    <div style="font-size: 16px; color: #fff; font-weight: bold;">{{ result.lucky_info.food }}</div>
+                </div>
+                <div class="pdf-grid-item">
+                    <div style="font-size: 12px; color: #888; margin-bottom: 6px;">NUMBER</div>
+                    <div style="font-size: 16px; color: #fff; font-weight: bold;">{{ result.lucky_info.number }}</div>
+                </div>
+            </div>
+
+            <div class="pdf-section-title">SAFETY LINE</div>
+            <div class="pdf-card">{{ result.safety_line|safe|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 배경 파티클
+    const canvas = document.getElementById('bg-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [];
+        function initStars() {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height; stars = [];
+            for (let i = 0; i < Math.floor((width * height) / 6000); i++) {
+                stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 1.5, speed: Math.random() * 0.5 + 0.1, opacity: Math.random() });
+            }
+        }
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height); ctx.fillStyle = "white";
+            stars.forEach(star => {
+                ctx.globalAlpha = star.opacity; ctx.beginPath(); ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2); ctx.fill();
+                star.y -= star.speed; star.opacity += (Math.random() - 0.5) * 0.05;
+                if (star.opacity < 0) star.opacity = 0; if (star.opacity > 1) star.opacity = 1;
+                if (star.y < 0) { star.y = height; star.x = Math.random() * width; }
+            });
+            requestAnimationFrame(animateStars);
+        }
+        window.addEventListener('resize', initStars); initStars(); animateStars();
+    }
+
+    // =========================================================================
+    // 🚀 NEW: 브라우저 화면을 무시하고, 청사진 HTML 문자열을 그대로 캡처하는 함수
+    // =========================================================================
+    function downloadCleanPDF() {
+        // 숨겨둔 PDF 전용 청사진의 내용을 '문자열'로 그대로 가져옵니다.
+        const pdfString = document.getElementById('pdf-blueprint-wrapper').innerHTML;
+
+        const opt = {
+            margin:       [10, 0, 10, 0], // 상/하 여백
+            filename:     'LifeTicket_Archive_{{ result.id }}.pdf',
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                backgroundColor: '#0f0c29', // 청사진 배경과 동일하게
+                logging: false
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            // page-break-inside: avoid 가 작동하도록 강제
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        // 라이브러리에 HTML 노드가 아닌 '순수 문자열(pdfString)'을 던져줍니다.
+        // 버튼 관련 텍스트 변경 로직을 모두 삭제했습니다.
+        html2pdf().set(opt).from(pdfString).save().then(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto_pdf') === 'true') {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                alert("✅ PDF 리포트 다운로드가 완료되었습니다!");
+            }
+        }).catch(err => {
+            console.error("PDF 에러:", err);
+            alert("PDF 생성 중 오류가 발생했습니다.");
+        });
+    }
+
+    // 마이페이지에서 넘어왔을 때 자동 실행
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto_pdf') === 'true') {
+            setTimeout(() => {
+                downloadCleanPDF();
+            }, 800); 
+        }
+    });
+</script>
+
+</body>
+</html>

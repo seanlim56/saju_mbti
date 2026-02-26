@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>MY UNIVERSE ARCHIVE</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0f0c29;
+            --glass-bg: rgba(0, 0, 0, 0.5); 
+            --accent-purple: #6200ea;
+            --accent-neon: #00d2d3; 
+            --accent-pink: #ff007f;
+            --font-main: 'Pretendard', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: url("{% static 'main/images/bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 12, 41, 0.85);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ⚡ 사이버펑크 글리치 효과 (Hover) */
+        .cyber-glitch { transition: all 0.2s; display: inline-block; }
+        .cyber-glitch:hover {
+            animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: var(--accent-neon);
+            text-shadow: 2px 2px var(--accent-pink), -2px -2px var(--accent-purple);
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg) translate(0); }
+            20% { transform: skew(-10deg) translate(-2px, 2px); }
+            40% { transform: skew(10deg) translate(2px, -2px); }
+            60% { transform: skew(-5deg) translate(-2px, -2px); }
+            80% { transform: skew(5deg) translate(2px, 2px); }
+            100% { transform: skew(0deg) translate(0); }
+        }
+
+        h1 {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(98, 0, 234, 0.6);
+        }
+        h1 span { 
+            font-family: var(--font-main);
+            font-size: 14px; font-weight: 400; display: block; 
+            margin-top: 5px; color: #b2bec3; letter-spacing: 0;
+        }
+
+        /* 🌞 오늘의 운세 대시보드 스타일 */
+        .daily-dash {
+            background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(15,12,41,0.9));
+            border: 1px solid var(--accent-neon);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 0 25px rgba(0, 210, 211, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .daily-dash::before {
+            content: 'LIVE DATA';
+            position: absolute; top: 10px; left: 15px;
+            font-family: var(--font-mono); font-size: 10px; color: var(--accent-pink);
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .dash-score { font-size: 40px; font-weight: 900; color: var(--accent-neon); margin: 10px 0; font-family: var(--font-mono); }
+        .dash-tier { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+        .dash-action {
+            background: rgba(255,255,255,0.1); padding: 12px; border-radius: 10px;
+            font-size: 14px; color: #eee; margin-top: 15px; border-left: 3px solid var(--accent-pink);
+        }
+
+        .history-card { 
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .history-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-purple);
+        }
+        
+        .history-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--accent-purple), var(--accent-neon));
+        }
+
+        .date-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #a4b0be;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .main-info {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mbti-badge {
+            background: rgba(0, 210, 211, 0.1);
+            color: var(--accent-neon);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            border: 1px solid rgba(0, 210, 211, 0.3);
+        }
+
+        .card-actions { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; gap: 10px; }
+        .btn-action {
+            flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600;
+            text-decoration: none; transition: all 0.2s; text-align: center; font-family: var(--font-main);
+        }
+        .btn-view { background: rgba(98, 0, 234, 0.2); color: #fff; border: 1px solid rgba(98, 0, 234, 0.4); }
+        .btn-view:hover { background: var(--accent-purple); border-color: var(--accent-purple); }
+        
+        .btn-pdf { background: rgba(0, 210, 211, 0.1); color: var(--accent-neon); border: 1px solid rgba(0, 210, 211, 0.3); }
+        .btn-pdf:hover { background: var(--accent-neon); color: #000; border-color: var(--accent-neon); }
+
+        .btn-home {
+            display: block; width: fit-content; margin: 40px auto 0; padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.1); color: #fff; text-decoration: none;
+            border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s; font-size: 13px;
+        }
+        .btn-home:hover { background: #fff; color: #000; }
+        .empty-msg { text-align: center; color: #636e72; margin-top: 60px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="cyber-glitch" data-text="MY ARCHIVE">
+        MY ARCHIVE
+        <span>나의 운명 데이터 기록장</span>
+    </h1>
+
+    {% if today_dash %}
+    <div class="daily-dash">
+        <div style="font-size:12px; color:#b2bec3; font-family:var(--font-mono);">
+            TODAY'S ENERGY FOR <span style="color:#fff; font-weight:bold;">{{ main_profile.name }}</span>
+        </div>
+        <div class="dash-score">{{ today_dash.score }} <span style="font-size:20px;">/ 100</span></div>
+        <div class="dash-tier">"{{ today_dash.tier }}"</div>
+        <div style="font-size:13px; color:#b2bec3; margin-bottom:10px;">{{ today_dash.stars }}</div>
+        <div class="dash-action">
+            <span style="color:var(--accent-pink); font-weight:bold; font-size:11px;">🔥 DAILY MISSION</span><br>
+            {{ today_dash.action }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if results %}
+        {% for result in results %}
+        <div class="history-card">
+            <div class="date-label">
+                <span>{{ result.created_at|date:"Y.m.d" }}</span>
+                <span>NO.{{ result.id }}</span>
+            </div>
+            
+            <div class="main-info">
+                {{ result.name }}
+                <span class="mbti-badge">{{ result.mbti }}</span>
+            </div>
+            
+            <div style="font-size:13px; color:#aaa; margin-bottom:10px;">
+                <span style="margin-right:10px;">🎂 {{ result.year }}.{{ result.month }}.{{ result.day }}</span>
+                <span>✨ {{ result.strongest }}</span>
+            </div>
+
+            <div class="card-actions">
+                <a href="{% url 'result_detail' result.id %}" class="btn-action btn-view">
+                    👁️ 상세 조회
+                </a>
+                
+                <a href="{% url 'result_detail' result.id %}?auto_pdf=true" class="btn-action btn-pdf">
+                    📄 PDF 다운로드
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-msg">
+            <p>아직 저장된 우주 기록이 없습니다. 🌑</p>
+            <p>첫 번째 운명을 분석해보세요!</p>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'index' %}" class="btn-home">← 메인 관제소로 복귀</a>
+</div>
+
+</body>
+</html>

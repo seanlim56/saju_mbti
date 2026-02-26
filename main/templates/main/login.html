@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATEWAY - LIFE TICKET</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* INDEX.HTML 과 동일한 테마 변수 */
+        :root {
+            --bg-deep: #0f0c29;
+            --glass-bg: rgba(0, 0, 0, 0.5); 
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-purple: #6200ea;
+            --accent-neon: #00d2d3; 
+            --text-main: #ffffff;
+            --text-sub: #b2bec3;
+            --font-main: 'Pretendard', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        body {
+            background: url("{% static 'main/images/bg.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 12, 41, 0.7);
+            z-index: -1;
+        }
+
+        .gate-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: floatUp 0.8s ease-out;
+        }
+        @keyframes floatUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-neon);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
+        }
+
+        .typing-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 30px;
+            height: 20px;
+            font-family: var(--font-mono);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--accent-neon);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-purple), #7c4dff);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(98, 0, 234, 0.4);
+            transition: transform 0.2s;
+            font-family: var(--font-mono);
+        }
+        button:hover {
+            transform: scale(1.02);
+        }
+
+        .links {
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--text-sub);
+            margin: 0 5px;
+            transition: color 0.3s;
+        }
+        .links a:hover { color: #fff; border-bottom: 1px solid #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="gate-container">
+        <h2>ACCESS GATE</h2>
+        <div class="typing-desc" id="typingText"></div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="display:block; margin-bottom:5px; font-weight:700; font-size:11px; color:var(--accent-neon); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:1px;">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <ul style="list-style:none; padding:8px; margin:5px 0 0 0; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); border-radius:8px;">
+                    {% for error in field.errors %}
+                    <li style="color:#ff6b6b; font-size:12px; font-weight:700;">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit">LOGIN SYSTEM 🚀</button>
+        </form>
+
+        <div class="links">
+            <a href="{% url 'signup' %}">JOIN MEMBER (회원가입)</a>
+            <a href="{% url 'index' %}">HOME</a>
+        </div>
+    </div>
+
+    <script>
+        const text = "천성(사주)과 기질(MBTI)이 만나는 곳.";
+        const target = document.getElementById("typingText");
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                target.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        window.onload = typeWriter;
+    </script>
+</body>
+</html>
