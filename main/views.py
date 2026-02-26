@@ -54,8 +54,11 @@ def result(request):
         gender = request.POST.get('gender', 'male')
         birth_date = request.POST.get('birth_date')
         birth_time = request.POST.get('birth_time')
-        mbti = request.POST.get('mbti', '').upper()
+        mbti = request.POST.get('mbti', '').upper().strip()
         calendar_type = request.POST.get('calendar_type', 'solar')
+
+        if not mbti or len(mbti) != 4:
+            return render(request, 'main/index.html', {'error': 'MBTI를 올바르게 선택해주세요. (예: ENFP)'})
 
         if not birth_date:
             return render(request, 'main/index.html', {'error': '생년월일을 입력해주세요.'})
@@ -266,8 +269,13 @@ def result_detail(request, result_id):
         
         if not result.management_gap:
             new_texts = text_bank.get_rich_text(
-                mbti=result.mbti, main_god=result.strongest,
-                strongest_element=strong_elem # 수정됨
+                mbti=result.mbti,
+                main_god=result.strongest,
+                sub_god=result.sub_10,           # [FIX] 서브 십신 추가
+                weakest_five=result.weakest_group,  # [FIX] 약한 오행 그룹 추가
+                strongest_element=strong_elem,
+                weakest_element=weakest,
+                element_counts=counts            # [FIX] 오행 카운트 추가
             )
             if not result.management_gap: result.management_gap = new_texts.get('management_gap', '')
             if not result.safety_line: result.safety_line = new_texts.get('safety_line', '')
@@ -318,14 +326,17 @@ def mypage(request):
     today_dash = None
     
     if main_profile:
-        # 오늘 날짜 기준 운세 생성
+        # 오늘 날짜 기준 운세 생성 - element_counts에서 가장 강한 오행 추출
+        counts = main_profile.element_counts or {}
+        strong_elem_for_dash = max(counts, key=counts.get) if counts else None
         today_dash = get_today_fortune(
             user_year=main_profile.year,
             user_month=main_profile.month,
             user_day=main_profile.day,
             strongest_10=main_profile.strongest,
-            sub_10=main_profile.sub_10,        # [FIX] 서브 십신 반영
-            mbti=main_profile.mbti
+            sub_10=main_profile.sub_10,
+            mbti=main_profile.mbti,
+            strongest_element=strong_elem_for_dash  # [FIX] result 페이지와 일관된 시드값 보장
         )
 
     return render(request, 'main/mypage.html', {

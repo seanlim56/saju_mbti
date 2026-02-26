@@ -85,6 +85,8 @@ IPCHUN_TABLE = {
 # ==========================================================
 
 def get_ipchun_time(year):
+    if year not in IPCHUN_TABLE:
+        print(f"[WARN] IPCHUN_TABLE에 {year}년 데이터 없음. 기본값(2월 4일 12시) 사용.")
     return IPCHUN_TABLE.get(year, (2, 4, 12, 0))
 
 

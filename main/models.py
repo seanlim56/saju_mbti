@@ -18,7 +18,7 @@ class SajuResult(models.Model):
     day = models.IntegerField()
     hour = models.IntegerField(null=True, blank=True)
     gender = models.CharField(max_length=10, default='male')
-    mbti = models.CharField(max_length=10, choices=MBTI_CHOICES)
+    mbti = models.CharField(max_length=10, choices=MBTI_CHOICES, blank=True)
 
     # 2. 분석 핵심 결과
     strongest = models.CharField(max_length=20)
