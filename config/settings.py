@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
 from pathlib import Path
 import os
 
@@ -27,8 +26,7 @@ SECRET_KEY = 'django-insecure-%l=pt_@p*lbe0pv-25i(-h07gc#*+c3(%^_q7cjh$ov!n8r@vh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']  # 개발 편의를 위해 모든 호스트 허용으로 변경해둠
-
+ALLOWED_HOSTS = ['*'] # 개발 편의를 위해 모든 호스트 허용으로 변경해둠
 
 # Application definition
 
@@ -46,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'ko-kr'  # 한국어 설정
+LANGUAGE_CODE = 'ko-kr' # 한국어 설정
 
 TIME_ZONE = 'Asia/Seoul' # 한국 시간 설정
 
@@ -119,10 +118,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # [중요] 배포 시 정적 파일들을 모아줄 경로 (나중에 python manage.py collectstatic 할 때 사용됨)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
