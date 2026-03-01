@@ -1,0 +1,26 @@
+# Django 프로젝트
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+
+# 환경변수 파일 (⚠️ 절대 커밋 금지!)
+.env
+
+# 가상환경
+venv/
+env/
+.venv/
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# 정적 파일 모음
+staticfiles/
+media/
