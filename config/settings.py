@@ -15,21 +15,24 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ===========================================================
+# [수정 1, 2] 보안: SECRET_KEY, DEBUG, ALLOWED_HOSTS를 환경변수로 분리
+# 배포 시 .env 파일 또는 서버 환경변수에 아래 값들을 설정하세요.
+# ===========================================================
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# SECRET_KEY: 환경변수에서 읽어옴. 없으면 개발용 임시 키 사용 (배포 시 반드시 환경변수 설정!)
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-local-dev-only-please-change-in-production'
+)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# (나중에 실제 배포할 때는 이 키를 환경변수로 숨겨야 합니다)
-SECRET_KEY = 'django-insecure-%l=pt_@p*lbe0pv-25i(-h07gc#*+c3(%^_q7cjh$ov!n8r@vh'
+# DEBUG: 환경변수 'DJANGO_DEBUG'가 'True'일 때만 True (기본값: False)
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*'] # 개발 편의를 위해 모든 호스트 허용으로 변경해둠
+# ALLOWED_HOSTS: 환경변수에서 쉼표로 구분하여 읽어옴 (기본값: localhost만 허용)
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # 내가 만든 앱
     'main',
 ]
@@ -58,7 +61,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # 앱 내부의 templates 폴더를 자동으로 찾습니다
+        'DIRS': [],  # 앱 내부의 templates 폴더를 자동으로 찾습니다
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,10 +75,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -83,10 +84,12 @@ DATABASES = {
     }
 }
 
+# [수정 5] 세션 백엔드를 DB로 변경
+# 기본 쿠키 세션은 4KB 제한이 있어 분석 결과 같은 큰 데이터 저장 시 유실될 수 있음
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,31 +105,28 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
-
-LANGUAGE_CODE = 'ko-kr' # 한국어 설정
-
-TIME_ZONE = 'Asia/Seoul' # 한국 시간 설정
-
+LANGUAGE_CODE = 'ko-kr'  # 한국어 설정
+TIME_ZONE = 'Asia/Seoul'  # 한국 시간 설정
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = '/static/'
 
 # [중요] 배포 시 정적 파일들을 모아줄 경로 (나중에 python manage.py collectstatic 할 때 사용됨)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+# [수정 3] STATICFILES_STORAGE -> STORAGES 딕셔너리 방식으로 변경 (Django 4.2+ 권장 방식)
+# 기존 STATICFILES_STORAGE 설정은 deprecated 경고 발생
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
