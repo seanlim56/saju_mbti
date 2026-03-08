@@ -44,6 +44,7 @@ def index(request):
     return render(request, 'main/index.html')
 
 
+@login_required(login_url='login')
 def result(request):
     if request.method != 'POST':
         return redirect('index')
