@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌟 {{ result.name }}님의 LIFE TICKET</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body style="margin:0;background:#0f0c29;color:#fff;font-family:'Pretendard',sans-serif;">
+  <div style="max-width:420px;margin:auto;padding:20px;">
+    <h1 style="text-align:center;font-size:28px;margin-bottom:10px;">🌟 {{ result.name }}님의 LIFE TICKET</h1>
+    <p style="text-align:center;color:#b2bec3;font-size:13px;margin-bottom:30px;">카카오톡으로 공유받은 결과입니다</p>
+
+    <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <h2 style="font-size:22px;text-align:center;color:#00d2d3;">{{ headline }}</h2>
+    </div>
+
+    <h3 style="font-size:16px;color:#00d2d3;margin-top:30px;">MY ELEMENT CHART</h3>
+    <div>
+      <div style="display:flex;align-items:center;margin:8px 0;">
+        <span style="width:50px;font-size:12px;">🌲 목</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin:0 10px;">
+          <div style="background:#00d2d3;height:100%;width:{% widthratio ec_mok 8 100 %}%;transition:width 1s;"></div>
+        </div>
+        <span style="width:20px;font-size:12px;text-align:right;">{{ ec_mok }}</span>
+      </div>
+      <div style="display:flex;align-items:center;margin:8px 0;">
+        <span style="width:50px;font-size:12px;">🔥 화</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin:0 10px;">
+          <div style="background:#ff007f;height:100%;width:{% widthratio ec_hwa 8 100 %}%;transition:width 1s;"></div>
+        </div>
+        <span style="width:20px;font-size:12px;text-align:right;">{{ ec_hwa }}</span>
+      </div>
+      <div style="display:flex;align-items:center;margin:8px 0;">
+        <span style="width:50px;font-size:12px;">⛰️ 토</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin:0 10px;">
+          <div style="background:#ffd700;height:100%;width:{% widthratio ec_to 8 100 %}%;transition:width 1s;"></div>
+        </div>
+        <span style="width:20px;font-size:12px;text-align:right;">{{ ec_to }}</span>
+      </div>
+      <div style="display:flex;align-items:center;margin:8px 0;">
+        <span style="width:50px;font-size:12px;">⚔️ 금</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin:0 10px;">
+          <div style="background:#c0c0c0;height:100%;width:{% widthratio ec_geum 8 100 %}%;transition:width 1s;"></div>
+        </div>
+        <span style="width:20px;font-size:12px;text-align:right;">{{ ec_geum }}</span>
+      </div>
+      <div style="display:flex;align-items:center;margin:8px 0;">
+        <span style="width:50px;font-size:12px;">💧 수</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;margin:0 10px;">
+          <div style="background:#00aaff;height:100%;width:{% widthratio ec_su 8 100 %}%;transition:width 1s;"></div>
+        </div>
+        <span style="width:20px;font-size:12px;text-align:right;">{{ ec_su }}</span>
+      </div>
+    </div>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:16px;padding:20px;margin-top:30px;">
+      <h3 style="font-size:16px;color:#00d2d3;margin-top:0;">🧩 IDENTITY</h3>
+      <div style="font-size:14px;line-height:1.6;">{{ identity_core|safe }}</div>
+    </div>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:16px;padding:20px;margin-top:20px;">
+      <h3 style="font-size:16px;color:#00d2d3;margin-top:0;">💸 MONEY</h3>
+      <div style="font-size:14px;line-height:1.6;">{{ money|safe }}</div>
+    </div>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:16px;padding:20px;margin-top:20px;">
+      <h3 style="font-size:16px;color:#00d2d3;margin-top:0;">💘 LOVE</h3>
+      <div style="font-size:14px;line-height:1.6;">{{ love|safe }}</div>
+    </div>
+
+    <p style="text-align:center;margin-top:40px;font-size:14px;color:#b2bec3;">
+      나도 내 결과 보고 싶다면? 👇<br>
+      <a href="{% url 'index' %}" style="display:inline-block;margin-top:10px;padding:12px 24px;background:#6200ea;color:#fff;border-radius:30px;text-decoration:none;font-weight:700;">나도 분석하기</a>
+    </p>
+  </div>
+</body>
+</html>
