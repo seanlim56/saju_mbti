@@ -345,3 +345,45 @@ def mypage(request):
         'main_profile': main_profile,
         'today_dash': today_dash
     })
+
+
+# [카카오 공유] 공유 토큰으로 결과 조회 (비로그인 접근 가능)
+def shared_result(request, share_token):
+    result = get_object_or_404(SajuResult, share_token=share_token)
+
+    # 오행 분해 변수
+    element_counts = result.element_counts or {}
+    ec_mok = element_counts.get('목', 0)
+    ec_hwa = element_counts.get('화', 0)
+    ec_to = element_counts.get('토', 0)
+    ec_geum = element_counts.get('금', 0)
+    ec_su = element_counts.get('수', 0)
+
+    import json
+    scores_json = json.dumps(result.scores_5, ensure_ascii=False)
+
+    context = {
+        'result': result,
+        'headline': result.headline,
+        'identity_core': result.identity_core,
+        'hidden_engine': result.hidden_engine,
+        'management_gap': result.management_gap,
+        'safety_line': result.safety_line,
+        'money': result.money,
+        'love': result.love,
+        'job': result.job,
+        'housing': result.housing,
+        'today_actions': result.today_actions,
+        'lucky_info': result.lucky_info,
+        'location_info': result.location_info,
+        'today_fortune': result.today_fortune,
+        'weapons': result.weapons,
+        'ec_mok': ec_mok,
+        'ec_hwa': ec_hwa,
+        'ec_to': ec_to,
+        'ec_geum': ec_geum,
+        'ec_su': ec_su,
+        'scores_json': scores_json,
+        'is_shared_view': True,
+    }
+    return render(request, 'main/shared.html', context)
