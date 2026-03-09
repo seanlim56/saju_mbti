@@ -854,7 +854,7 @@
 {% if headline %}
 <script>
     // 1. 결과 저장
-    // [카카오 공유] Kakao SDK 초기화     Kakao.init('YOUR_KAKAO_JS_KEY');  // ⚠️ 카카오 개발자센터에서 발급한 JavaScript 키로 교체하세요      function shareKakao() {       const shareUrl = window.location.origin + '/share/' + (window.currentShareToken || '');       const name = '{{ request.session.temp_result.name|default:"" }}';       const headline = '{{ headline|escapejs }}';       if (!Kakao.isInitialized()) { alert('[오류] 실제 JavaScript 키를 입력해주세요.'); return; }       Kakao.Share.sendDefault({         objectType: 'feed',         content: {           title: '🚀 ' + name + '의 LIFE TICKET',           description: headline + '
+    // [카카오 공유] Kakao SDK 초기화     Kakao.init('33d3ce77f7bbbf57258a8260b5a14700');  // ⚠️ 카카오 개발자센터에서 발급한 JavaScript 키로 교체하세요      function shareKakao() {       const shareUrl = window.location.origin + '/share/' + (window.currentShareToken || '');       const name = '{{ request.session.temp_result.name|default:"" }}';       const headline = '{{ headline|escapejs }}';       if (!Kakao.isInitialized()) { alert('[오류] 실제 JavaScript 키를 입력해주세요.'); return; }       Kakao.Share.sendDefault({         objectType: 'feed',         content: {           title: '🚀 ' + name + '의 LIFE TICKET',           description: headline + '
 \uB098의 우주 정체성을 확인해바!',           imageUrl: 'https://saju-mbti.onrender.com/static/main/images/bg.jpg',           link: { mobileWebUrl: shareUrl, webUrl: shareUrl },         },         buttons: [{           title: '리유즈트 보러가기',           link: { mobileWebUrl: shareUrl, webUrl: shareUrl },         }],       });     }      function saveCurrentResult() {
         if(!confirm("현재 결과를 '나의 우주 기록'에 영구 저장하시겠습니까?")) return;
         
