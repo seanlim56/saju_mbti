@@ -236,7 +236,7 @@ def save_result(request):
         if 'temp_result' in request.session:
             del request.session['temp_result']
             
-                return JsonResponse({'success': True, 'message': '기록이 안전하게 저장되었습니다!', 'share_token': str(obj.share_token)})
+            return JsonResponse({'success': True, 'message': '기록이 안전하게 저장되었습니다!', 'share_token': str(obj.share_token)})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'저장 실패: {str(e)}'})
 
