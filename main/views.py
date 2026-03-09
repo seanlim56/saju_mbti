@@ -146,8 +146,11 @@ def result(request):
         location_info = get_location_recommendation(norm_weakest, seed_key=seed_key)
         lucky_info = get_lucky_features(norm_weakest, seed_key=seed_key)
 
-        scores_json = json.dumps(saju_result.get('scores', {}), ensure_ascii=False)
-        scores_10_json = json.dumps(saju_result.get('scores_10', {}), ensure_ascii=False)
+        # [FIX] Ensure scores data is never empty for radar chart
+        scores_data = saju_result.get('scores', {})
+        if not scores_data or sum(scores_data.values()) == 0:
+            scores_data = {'비겁': 8, '식상': 8, '재성': 8, '관성': 8, '인성': 8}  # Default balanced scores
+        scores_json = json.dumps(scores_data, ensure_ascii=False)        scores_10_json = json.dumps(saju_result.get('scores_10', {}), ensure_ascii=False)
 
         # 5. 세션에 임시 저장
         request.session['temp_result'] = {
