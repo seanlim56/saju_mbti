@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -10,7 +11,7 @@ class SajuResult(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
     # 1. 기본 입력 정보
     name = models.CharField(max_length=50, default="이름없음")
     year = models.IntegerField()
@@ -22,9 +23,9 @@ class SajuResult(models.Model):
 
     # 2. 분석 핵심 결과
     strongest = models.CharField(max_length=20)
-    sub_10 = models.CharField(max_length=20, null=True, blank=True)   # [FIX] 서브 십신 저장
+    sub_10 = models.CharField(max_length=20, null=True, blank=True)
     weakest_group = models.CharField(max_length=20, null=True, blank=True)
-    
+
     # 3. 점수 및 그래프 데이터 (JSON)
     scores_5 = models.JSONField(default=dict, blank=True)
     scores_10 = models.JSONField(default=dict, blank=True)
@@ -33,26 +34,28 @@ class SajuResult(models.Model):
     # 4. 상세 텍스트 저장
     headline = models.CharField(max_length=200, blank=True)
     identity_core = models.TextField(blank=True)
-    
-    # 분석 핵심 3종 세트
-    hidden_engine = models.TextField(blank=True)   # 숨겨진 본능
-    management_gap = models.TextField(blank=True)  # 관리해야 할 갭
-    safety_line = models.TextField(blank=True)     # 안전 가이드
 
+    # 분석 핵심 3종 세트
+    hidden_engine = models.TextField(blank=True)
+    management_gap = models.TextField(blank=True)
+    safety_line = models.TextField(blank=True)
     money = models.TextField(blank=True)
     love = models.TextField(blank=True)
     job = models.TextField(blank=True)
     housing = models.TextField(blank=True)
     today_actions = models.TextField(blank=True)
-    
+
     # 5. 부가 정보 (운세, 추천, 무기)
     lucky_info = models.JSONField(default=dict, blank=True)
     location_info = models.JSONField(default=dict, blank=True)
     today_fortune = models.JSONField(default=dict, blank=True)
-    
+
     # [CRITICAL UPDATE] Hidden Weapons (특수살) 저장용 필드 추가
     weapons = models.JSONField(default=list, blank=True)
-    
+
+    # [카카오 공유] 고유 공유 토큰
+    share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
