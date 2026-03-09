@@ -767,7 +767,8 @@
                 {% if user.is_authenticated and headline %}
                 <button type="button" id="save-btn" onclick="saveCurrentResult()" class="btn-retry" 
                         style="background:none; border:none; padding:0; font-family:inherit; font-size:13px; cursor:pointer; color:#00d2d3;">
-                    💾 결과 저장             <button type="button" id="kakao-share-btn" onclick="shareKakao()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#FEE500;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-top:10px;">               📢 카카오톡으로 겵유하기             </button>
+                    💾 결과 저장             <button type="button" id="kakao-share-btn" onclick="shareKakao()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#FEE500;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-top:10px;">               770
+                        카카오톡 공유 </button>
                 </button>
                 {% endif %}
             </div>
@@ -854,7 +855,8 @@
 {% if headline %}
 <script>
     // 1. 결과 저장
-    // [카카오 공유] Kakao SDK 초기화     Kakao.init('33d3ce77f7bbbf57258a8260b5a14700');  // ⚠️ 카카오 개발자센터에서 발급한 JavaScript 키로 교체하세요      function shareKakao() {       const shareUrl = window.location.origin + '/share/' + (window.currentShareToken || '');       const name = '{{ request.session.temp_result.name|default:"" }}';       const headline = '{{ headline|escapejs }}';       if (!Kakao.isInitialized()) { alert('[오류] 실제 JavaScript 키를 입력해주세요.'); return; }       Kakao.Share.sendDefault({         objectType: 'feed',         content: {           title: '🚀 ' + name + '의 LIFE TICKET',           description: headline + '
+    // [카카오 공유] Kakao SDK 초기화     Kakao.init('33d3ce77f7bbbf57258a8260b5a14700');  // ⚠️ 카카오 개발자센터에서 발급한 JavaScript 키로 교체하세요      function 764
+    () {       const shareUrl = window.location.origin + '/share/' + (window.currentShareToken || '');       const name = '{{ request.session.temp_result.name|default:"" }}';       const headline = '{{ headline|escapejs }}';       if (!Kakao.isInitialized()) { alert('[오류] 실제 JavaScript 키를 입력해주세요.'); return; }       Kakao.Share.sendDefault({         objectType: 'feed',         content: {           title: '🚀 ' + name + '의 LIFE TICKET',           description: headline + '
 \uB098의 우주 정체성을 확인해바!',           imageUrl: 'https://saju-mbti.onrender.com/static/main/images/bg.jpg',           link: { mobileWebUrl: shareUrl, webUrl: shareUrl },         },         buttons: [{           title: '리유즈트 보러가기',           link: { mobileWebUrl: shareUrl, webUrl: shareUrl },         }],       });     }      function saveCurrentResult() {
         if(!confirm("현재 결과를 '나의 우주 기록'에 영구 저장하시겠습니까?")) return;
         
