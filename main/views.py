@@ -207,7 +207,7 @@ def save_result(request):
         return JsonResponse({'success': False, 'message': '저장할 결과가 만료되었습니다. 다시 분석해주세요.'})
 
     try:
-        SajuResult.objects.create(
+        obj = SajuResult.objects.create(
             user=request.user,
             name=temp['name'],
             year=temp['year'], month=temp['month'], day=temp['day'], hour=temp.get('hour'),
@@ -236,7 +236,7 @@ def save_result(request):
         if 'temp_result' in request.session:
             del request.session['temp_result']
             
-        return JsonResponse({'success': True, 'message': '✅ 기록이 안전하게 저장되었습니다!'})
+        return JsonResponse({'success': True, 'message': '✅ 기록이 안전하게 저장되었습니다!', 'share_token': str(obj.share_token)})✅ 기록이 안전하게 저장되었습니다!'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'저장 실패: {str(e)}'})
 
