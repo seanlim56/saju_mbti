@@ -4,6 +4,7 @@ set -o errexit
 
 pip install -r requirements.txt
 
+rm -f db.sqlite3
 python manage.py collectstatic --no-input
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
