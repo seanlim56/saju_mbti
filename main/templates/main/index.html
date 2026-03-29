@@ -875,7 +875,6 @@
         .then(data => { 
             alert(data.message); 
             if(data.success) {                 const btn = document.getElementById('save-btn');                 if(btn) { btn.innerText = '✅ 저장 완료'; btn.style.color='#888'; btn.style.cursor='default'; btn.onclick=null; }                 // [카카오 공유] 저장 성공 시 share_token 저장 + 공유 버튼 활성화                 if(data.share_token) {                   window.currentShareToken = data.share_token;                   const kakaoBtn = document.getElementById('kakao-share-btn');                   if(kakaoBtn) kakaoBtn.style.display = 'flex';                 }
-                const btn = document.getElementById('save-btn');
                 if(btn) {
                     btn.innerText = "✅ 저장 완료";
                     btn.style.color = "#888";
